@@ -26,6 +26,20 @@ export class Web3Controller {
     return data;
   }
 
+  @Get('/hasClaim/:address')
+  @ApiOkResponse({
+    type: String,
+  })
+  async hasClaim(@Param('address') address: string) {
+    const hasClaim = await this.web3Service.isAddressHasClaim(
+      address,
+    );
+
+    return {
+      hasClaim,
+    };
+  }
+
   @Post('/rent')
   @ApiBody({ type: RegisterDto })
   @ApiOkResponse({
@@ -36,7 +50,22 @@ export class Web3Controller {
       throw new Error('freeRentKey is wrong');
     }
 
+    if (params.domainName.length <= 2) {
+      throw new Error('domain name should contain 2+ characters');
+    }
+
+    const hasClaim = await this.web3Service.isAddressHasClaim(
+      params.ownerAddress,
+    );
+
+    if (hasClaim) {
+      throw new Error('an address can claim only one domain');
+    }
+
+    await this.web3Service.createClaim(params.ownerAddress, params.domainName);
+
     const data = await this.web3Service.register(params.domainName, params.ownerAddress);
+
     return data;
   }
 }
