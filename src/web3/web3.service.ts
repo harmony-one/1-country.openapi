@@ -4,6 +4,8 @@ import { DCEns } from 'one-country-sdk';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import axios from 'axios';
+import { ClaimsService } from '../claim/claims.service';
+import { ClaimsModule } from '../claim/claims.module';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const Web3 = require('web3');
 
@@ -13,6 +15,7 @@ export class Web3Service {
   constructor(
     private configService: ConfigService,
     private readonly httpService: HttpService,
+    private readonly claimsService: ClaimsService,
   ) {
     const provider = new Web3.providers.HttpProvider(
       configService.get('web3.rpcUrl'),
@@ -148,5 +151,14 @@ export class Web3Service {
 
   validateAuthKey(key: string) {
     return key === this.configService.get('authKey');
+  }
+
+  async isAddressHasClaim(address: string) {
+    const claim = await this.claimsService.findByAddress(address);
+    return !!claim;
+  }
+
+  async createClaim(address: string, domain: string) {
+    return this.claimsService.create(address, domain);
   }
 }
