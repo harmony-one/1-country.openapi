@@ -7,6 +7,7 @@ import configuration from './config';
 import entities from './typeorm';
 import { TransferTrackerModule } from './transfer-tracker/transfer-tracker.module';
 import { Web3Module } from 'nest-web3';
+import { Web3Module as Contract } from './web3/web3.module';
 
 @Module({
   imports: [
@@ -37,7 +38,8 @@ import { Web3Module } from 'nest-web3';
       inject: [ConfigService],
     }),
     Web3Module,
-    TransferTrackerModule
+    Contract,
+    // TransferTrackerModule
   ],
   controllers: [AppController],
   providers: [AppService],
