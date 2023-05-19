@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Param, Post } from '@nestjs/common';
 import { ApiOkResponse, ApiParam, ApiBody, ApiTags } from '@nestjs/swagger';
 import { Web3Service } from './web3.service';
 import { ApiProperty } from '@nestjs/swagger';
@@ -47,11 +47,23 @@ export class Web3Controller {
   })
   async rent(@Body() params: { ownerAddress: string, domainName: string, freeRentKey: string }) {
     if(!this.web3Service.validateAuthKey(params.freeRentKey)) {
-      throw new Error('freeRentKey is wrong');
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: 'freeRentKey is wrong',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     if (params.domainName.length <= 2) {
-      throw new Error('domain name should contain 2+ characters');
+      throw new HttpException(
+        {
+          status: HttpStatus.CONFLICT,
+          error: 'domain name should contain 2+ characters',
+        },
+        HttpStatus.CONFLICT,
+      );
     }
 
     const hasClaim = await this.web3Service.isAddressHasClaim(
@@ -59,7 +71,13 @@ export class Web3Controller {
     );
 
     if (hasClaim) {
-      throw new Error('an address can claim only one domain');
+      throw new HttpException(
+        {
+          status: HttpStatus.CONFLICT,
+          error: 'an address can claim only one domain',
+        },
+        HttpStatus.CONFLICT,
+      );
     }
 
     await this.web3Service.createClaim(params.ownerAddress, params.domainName);
